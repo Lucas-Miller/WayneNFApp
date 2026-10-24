@@ -3,6 +3,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteInfo } from '@/types';
 
 type RoutePreviewCardProps = {
@@ -16,10 +17,11 @@ export const RoutePreviewCard: React.FC<RoutePreviewCardProps> = ({
   onNavigate,
   onCancel,
 }) => {
+  const insets = useSafeAreaInsets();
   if (!routeInfo) return null;
 
   return (
-    <View style={styles.previewCard}>
+    <View style={[styles.previewCard, { bottom: 24 + insets.bottom }]}>
       <View style={styles.previewHeader}>
         <MaterialIcons name="directions-car" size={24} color="#2E7D32" />
         <View style={styles.previewInfo}>

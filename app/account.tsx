@@ -2,6 +2,7 @@
 
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -23,6 +24,7 @@ type ListItem = (Spot & { pending?: false }) | (PendingSpot & { pending: true })
 export default function AccountScreen() {
   const router = useRouter();
   const { user, token, login, logout } = useAuth();
+  const insets = useSafeAreaInsets();
   const [spots, setSpots] = useState<Spot[]>([]);
   const [pending, setPending] = useState<PendingSpot[]>([]);
   const [loading, setLoading] = useState(false);
@@ -140,6 +142,7 @@ export default function AccountScreen() {
       ) : (
         <FlatList
           data={items}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
           keyExtractor={(item) => (item.pending ? `pending-${item.localId}` : item.id.toString())}
           ListEmptyComponent={<Text style={styles.empty}>No saved spots yet</Text>}
           renderItem={({ item }) => (

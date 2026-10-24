@@ -6,6 +6,7 @@ import MapView, { MapPressEvent, MapType, Marker } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { API_CONFIG } from '@/config/api.config';
 import { useAuth } from '@/context/AuthContext';
 import { useWayneForestData, useLocationTracking, useRouteNavigation, useSpotManagement } from '@/hooks/map';
@@ -25,6 +26,8 @@ export default function MapScreen() {
   const router = useRouter();
   const mapRef = useRef<MapView | null>(null);
   const { token } = useAuth();
+  // Space taken by the system navigation bar (app draws edge to edge on Android)
+  const insets = useSafeAreaInsets();
 
   // Route params for navigation destination
   const { destLat, destLng } = useLocalSearchParams<{ destLat?: string; destLng?: string }>();
@@ -193,6 +196,7 @@ export default function MapScreen() {
         showsMyLocationButton={false}
         showsCompass={false}
         onPress={handleMapPress}
+        mapPadding={{ top: 0, right: 0, bottom: insets.bottom, left: 0 }}
       >
         {/* Wayne National Forest Polygons */}
         <WayneForestPolygons polygons={polygons} />
@@ -250,7 +254,7 @@ export default function MapScreen() {
 
       {/* Point Info Card (takes the place of the route card while open) */}
       {selectedPoint ? (
-        <KeyboardAvoidingView behavior="padding" style={styles.bottomSheet} pointerEvents="box-none">
+        <KeyboardAvoidingView behavior="padding" style={[styles.bottomSheet, { bottom: 24 + insets.bottom }]} pointerEvents="box-none">
           <PointInfoCard
             point={selectedPoint}
             forestArea={getForestAreaAt(selectedPoint.latitude, selectedPoint.longitude)}

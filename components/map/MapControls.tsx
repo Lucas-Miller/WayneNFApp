@@ -4,6 +4,7 @@ import React, { useRef } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { MapType } from 'react-native-maps';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type MapControlsProps = {
   mapType: MapType;
@@ -26,6 +27,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
   bottomOffset = 0,
 }) => {
   const fabScale = useRef(new Animated.Value(1)).current;
+  const insets = useSafeAreaInsets();
 
   const handleCenterLocation = () => {
     // Animate button press
@@ -38,7 +40,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
   };
 
   return (
-    <View style={[styles.fabContainer, { bottom: 24 + bottomOffset }]}>
+    <View style={[styles.fabContainer, { bottom: 24 + insets.bottom + bottomOffset }]}>
       {/* Coordinate Search */}
       <TouchableOpacity
         style={styles.fab}
