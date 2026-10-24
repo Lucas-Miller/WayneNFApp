@@ -1,0 +1,551 @@
+/* styles.css - palette matches the mobile app */
+
+:root {
+  --green: #2e7d32;
+  --green-dark: #1b5e20;
+  --blue: #1976d2;
+  --text: #1a1a1a;
+  --muted: #666;
+  --border: #e0e0e0;
+  --surface: #fff;
+  --surface-alt: #f5f5f5;
+  --bg: #eef2ee;
+  --danger: #c62828;
+  --shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.accent {
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.center {
+  text-align: center;
+}
+
+.error {
+  color: var(--danger);
+  margin: 0;
+}
+
+/* ---------- Map screen ---------- */
+
+.map-screen {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+}
+
+.map-header {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+}
+
+.pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--green);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+}
+
+.brand {
+  padding: 8px 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.icon-pill {
+  padding: 8px;
+  text-decoration: none;
+}
+
+.icon-pill:hover {
+  background: #fff;
+}
+
+.my-location-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4285f4;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 6px rgba(66, 133, 244, 0.25);
+}
+
+.fab-stack {
+  position: absolute;
+  right: 16px;
+  bottom: 32px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fab {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  color: var(--green);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow);
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.fab:hover {
+  background: #f1f8f1;
+}
+
+.fab:active {
+  transform: scale(0.92);
+}
+
+.fab-primary,
+.fab-primary:hover {
+  background: var(--green);
+  color: #fff;
+}
+
+.fab-active,
+.fab-active:hover {
+  background: var(--blue);
+  color: #fff;
+}
+
+.message-banner {
+  position: absolute;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  max-width: calc(100% - 32px);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: var(--shadow);
+  animation: banner 3.6s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes banner {
+  0% {
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- Cards, buttons, inputs ---------- */
+
+.card {
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.route-card {
+  position: absolute;
+  left: 16px;
+  bottom: 32px;
+  z-index: 5;
+  width: min(420px, calc(100% - 100px));
+}
+
+.route-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.route-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.point-card {
+  position: absolute;
+  left: 16px;
+  bottom: 32px;
+  z-index: 5;
+  width: min(420px, calc(100% - 100px));
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.point-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -4px -6px -4px 0;
+}
+
+.status-chip {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.status-chip.inside {
+  background: #e8f5e9;
+  color: var(--green-dark);
+}
+
+.status-chip.outside {
+  background: #fdecea;
+  color: var(--danger);
+}
+
+.point-details {
+  margin-top: -4px;
+}
+
+.coord-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-alt);
+  border-radius: 12px;
+  padding: 10px 10px 10px 14px;
+}
+
+.coord-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.coord-decimal {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 15px;
+  font-weight: 600;
+  user-select: all;
+}
+
+.coord-dms {
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.copy-btn {
+  flex: none;
+  padding: 9px 12px;
+  background: #fff;
+  min-width: 96px;
+}
+
+.save-row {
+  display: flex;
+  gap: 8px;
+}
+
+.save-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.save-row .btn {
+  flex: none;
+}
+
+.sign-in-hint {
+  margin: 0;
+}
+
+.sign-in-hint a {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  flex: 1;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--green-dark);
+}
+
+.btn-secondary {
+  background: var(--surface-alt);
+  color: var(--muted);
+}
+
+.btn-secondary:hover {
+  background: #ebebeb;
+}
+
+.input {
+  width: 100%;
+  height: 48px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 16px;
+  background: #fafafa;
+  color: var(--text);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--green);
+  background: #fff;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.icon-btn {
+  border: none;
+  background: none;
+  color: var(--muted);
+  padding: 8px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+
+.icon-btn:hover {
+  background: var(--surface-alt);
+  color: var(--text);
+}
+
+.icon-btn.danger:hover {
+  color: var(--danger);
+}
+
+.link-btn {
+  border: none;
+  background: none;
+  color: var(--green);
+  font-weight: 600;
+  padding: 4px;
+}
+
+/* ---------- Modals ---------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modal {
+  width: min(440px, 100%);
+  padding: 24px;
+}
+
+.modal .muted {
+  margin: 0 0 20px;
+}
+
+.modal .input {
+  margin-bottom: 20px;
+}
+
+.coord-row {
+  display: flex;
+  gap: 12px;
+}
+
+.coord-row label {
+  flex: 1;
+}
+
+/* ---------- Account page ---------- */
+
+.page {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 16px;
+}
+
+.page-card {
+  width: min(560px, 100%);
+  padding: 24px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--green);
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 20px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-form h2 {
+  text-align: center;
+}
+
+.account-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--green);
+}
+
+.account-email {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.section-title {
+  margin: 24px 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.spot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.spot {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.spot-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 8px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.spot-link:hover {
+  background: #f1f8f1;
+}
+
+.spot-name {
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .route-card,
+  .point-card {
+    width: calc(100% - 100px);
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+}

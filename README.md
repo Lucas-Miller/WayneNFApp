@@ -1,50 +1,45 @@
-# Welcome to your Expo app 👋
+# Wayne NF App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Find out whether you're standing in Wayne National Forest (southeast Ohio), see which county and whether it's open to hunting, and save camping spots. Built to keep working with no cell signal.
 
-## Get started
+| Folder | What it is |
+| --- | --- |
+| `/` (app, components, hooks, services) | Mobile app: Expo / React Native with Google Maps |
+| `web/` | Browser app: Vite, React, TanStack Router and Query (see [web/README.md](web/README.md)) |
+| `wayne-nf-api/` | Go API: accounts, saved spots, and a mirror of the forest boundary |
+| `shared/` | Code and data both apps use, including the bundled boundary snapshot |
 
-1. Install dependencies
+Forest boundaries come from Ohio DNR's public ArcGIS service (ODNR lands layer). The apps try the API's mirror first, then ODNR, then the snapshot shipped in the app. The phone keeps the last copy it downloaded.
 
-   ```bash
-   npm install
-   ```
+## Mobile app
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```sh
+cp .env.example .env.local   # add your Google Maps API key
+npm install
+npx expo run:android         # or build a development client with EAS
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+For EAS builds, set the key as an EAS environment variable (`.env.local` isn't uploaded):
 
-## Learn more
+```sh
+eas env:create --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY --value <key> \
+  --environment development --environment preview --environment production --visibility sensitive
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Offline behavior has to be tested on a preview or release build. In a development build the bundled snapshot is served by Metro.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## API
 
-## Join the community
+```sh
+cd wayne-nf-api
+cp .env.example .env         # Postgres URL, JWT secret, CORS origins
+go run .
+```
 
-Join our community of developers creating universal apps.
+The API creates its `forest_boundary` table on startup and refreshes it from ODNR daily. It keeps the last good copy if ODNR is down or returns suspicious data.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Refreshing the bundled boundary snapshot
+
+```sh
+npm run update-forest-snapshot
+```

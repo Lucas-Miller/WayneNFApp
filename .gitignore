@@ -37,3 +37,13 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# secrets
+.env
+
+# build/debug artifacts
+*.exe
+*.stackdump
+
+# Claude Code local settings
+.claude/settings.local.json
