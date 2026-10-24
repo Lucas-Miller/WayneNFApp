@@ -1,8 +1,5 @@
 // routes/index.tsx - main map screen
 
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { AdvancedMarker, Map, type MapMouseEvent, Pin, useMap } from '@vis.gl/react-google-maps';
-import { useCallback, useEffect, useState } from 'react';
 import { CoordinateSearchModal } from '@/components/CoordinateSearchModal';
 import { ForestPolygons } from '@/components/ForestPolygons';
 import { MapControls, type MapType } from '@/components/MapControls';
@@ -12,11 +9,14 @@ import { PointInfoCard } from '@/components/PointInfoCard';
 import { RouteDirections } from '@/components/RouteDirections';
 import { RoutePreviewCard } from '@/components/RoutePreviewCard';
 import { useLocationTracking } from '@/hooks/useLocationTracking';
-import { useCreateSpot } from '@/hooks/useSpots';
+import { useCreateSpot, useSpots } from '@/hooks/useSpots';
 import { useWayneForestData } from '@/hooks/useWayneForestData';
 import { useAuth } from '@/lib/auth';
 import { CONFIG, DEFAULT_CENTER } from '@/lib/config';
 import type { Coordinate, RouteInfo } from '@/lib/types';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { AdvancedMarker, Map, type MapMouseEvent, Pin, useMap } from '@vis.gl/react-google-maps';
+import { useCallback, useEffect, useState } from 'react';
 
 type MapSearch = {
   destLat?: number;
@@ -57,6 +57,8 @@ function MapScreen() {
   const { polygons, error: forestError, getForestAreaAt, isPointInForest } = useWayneForestData();
   const { myLocation, tracking, getCurrentLocation, startTracking, stopTracking } = useLocationTracking();
   const createSpot = useCreateSpot();
+
+  const { data: savedSpots = [], isLoading, error } = useSpots();
 
   const dismissMessage = useCallback(() => setMessage(''), []);
 
@@ -207,6 +209,14 @@ function MapScreen() {
           <AdvancedMarker position={toLatLng(myLocation)} title="Your location" zIndex={2}>
             <div className="my-location-dot" />
           </AdvancedMarker>
+        )}
+
+        {savedSpots && savedSpots.map((spot, index) => 
+          (
+            <AdvancedMarker position={toLatLng(spot)} title={spot.name} zIndex={0} key={index}>
+              <Pin background="#F57C00" borderColor="#E65100" glyphColor="#fff" />
+            </AdvancedMarker>
+         )
         )}
 
         {selectedPoint && (
