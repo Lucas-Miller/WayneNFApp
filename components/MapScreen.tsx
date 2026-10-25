@@ -1,24 +1,28 @@
 // components/MapScreen.tsx - Refactored version
 
+import { API_CONFIG } from '@/config/api.config';
+import { useAuth } from '@/context/AuthContext';
+import { useLocationTracking, useRouteNavigation, useSpotManagement, useWayneForestData } from '@/hooks/map';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useSpots } from '@/hooks/useSpots';
+import { distanceMiles } from '@/shared/pointInfo';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, StatusBar, StyleSheet, View } from 'react-native';
 import MapView, { MapPressEvent, MapType, Marker } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { API_CONFIG } from '@/config/api.config';
-import { useAuth } from '@/context/AuthContext';
-import { useWayneForestData, useLocationTracking, useRouteNavigation, useSpotManagement } from '@/hooks/map';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { distanceMiles } from '@/shared/pointInfo';
 import {
-  MapHeader,
-  MapControls,
-  MessageBanner,
-  RoutePreviewCard,
-  PointInfoCard,
   CoordinateSearchModal,
+  MapControls,
+  MapHeader,
+  MessageBanner,
+  PointInfoCard,
+  RoutePreviewCard,
+  SpotMarker,
+  SAVED_SPOT_COLOR,
+  PENDING_SPOT_COLOR,
   WayneForestPolygons,
 } from './map';
 
@@ -57,6 +61,7 @@ export default function MapScreen() {
   const { showPreview, routeInfo, updateRouteInfo, clearRoute, openExternalDirections } = useRouteNavigation();
   const { saving, saveSpot } = useSpotManagement();
   const { isOffline } = useNetworkStatus();
+  const { spots, pending } = useSpots();
 
   /**
    * Check if a point is within Wayne National Forest and show message
@@ -208,8 +213,23 @@ export default function MapScreen() {
           </Marker>
         )}
 
-        {/* Selected point */}
-        {selectedPoint && <Marker coordinate={selectedPoint} pinColor="#1976D2" />}
+        {/* User's Saved Location markers */}
+        {spots.map((spot) => (
+          <SpotMarker key={spot.id} coordinate={spot} title={spot.name} color={SAVED_SPOT_COLOR} />
+        ))}
+
+        {/* User's Pending Saved Location markers */}
+        {pending.map((spot) => (
+          <SpotMarker
+            key={spot.localId}
+            coordinate={spot}
+            title={`${spot.name} (waiting to sync)`}
+            color={PENDING_SPOT_COLOR}
+          />
+        ))}
+
+        {/* Selected point (drawn above saved spots) */}
+        {selectedPoint && <Marker coordinate={selectedPoint} pinColor="#1976D2" zIndex={1} />}
 
         {/* Destination marker */}
         {destination && <Marker coordinate={destination} pinColor="#2E7D32" />}

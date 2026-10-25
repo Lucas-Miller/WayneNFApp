@@ -7,3 +7,4 @@ export * from './RoutePreviewCard';
 export * from './PointInfoCard';
 export * from './CoordinateSearchModal';
 export * from './WayneForestPolygons';
+export * from './SpotMarker';

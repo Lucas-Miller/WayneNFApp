@@ -34,7 +34,14 @@ export const useSpotManagement = () => {
           return 'queued';
         }
         try {
-          await spotsApi.createSpot(spot);
+          const saved = await spotsApi.createSpot(spot);
+          // Show it right away (map pin, account list); the server already has it, so a
+          // local storage hiccup here shouldn't report the save as failed
+          if (user) {
+            await spotsStore
+              .addSaved(user.id, saved)
+              .catch((error) => console.warn('Could not cache saved spot:', error));
+          }
           return 'saved';
         } catch (error) {
           if (isNetworkError(error) && user) {

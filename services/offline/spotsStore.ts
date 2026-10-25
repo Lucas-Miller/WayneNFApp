@@ -39,6 +39,16 @@ export const spotsStore = {
 
   getPending: (userId: number) => readList<PendingSpot>(pendingKey(userId)),
 
+  /**
+   * Add a spot the server just saved to the on-device copy, so it shows up right
+   * away (e.g. as a map pin) without refetching
+   */
+  async addSaved(userId: number, spot: Spot) {
+    const cached = await readList<Spot>(cachedKey(userId));
+    await AsyncStorage.setItem(cachedKey(userId), JSON.stringify([spot, ...cached]));
+    notify();
+  },
+
   async addPending(userId: number, spot: CreateSpotRequest): Promise<PendingSpot> {
     const pending: PendingSpot = {
       ...spot,

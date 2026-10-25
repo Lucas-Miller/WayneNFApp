@@ -1,9 +1,13 @@
 // app/account.tsx
 
+import { useAuth } from '@/context/AuthContext';
+import { useSpots } from '@/hooks/useSpots';
+import { isNetworkError } from '@/services/api';
+import { PendingSpot } from '@/services/offline';
+import { Spot } from '@/types';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Button,
@@ -14,10 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAuth } from '@/context/AuthContext';
-import { isNetworkError, spotsApi } from '@/services/api';
-import { PendingSpot, spotsStore } from '@/services/offline';
-import { Spot } from '@/types';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ListItem = (Spot & { pending?: false }) | (PendingSpot & { pending: true });
 
@@ -25,52 +26,15 @@ export default function AccountScreen() {
   const router = useRouter();
   const { user, token, login, logout } = useAuth();
   const insets = useSafeAreaInsets();
-  const [spots, setSpots] = useState<Spot[]>([]);
-  const [pending, setPending] = useState<PendingSpot[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [showingOfflineCopy, setShowingOfflineCopy] = useState(false);
+  const {spots, pending, loading, showingOfflineCopy} = useSpots();
+
 
   // login form state
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const userId = user?.id;
-
-  const loadLocal = useCallback(async () => {
-    if (userId === undefined) return;
-    const [cached, queued] = await Promise.all([
-      spotsStore.getCached(userId),
-      spotsStore.getPending(userId),
-    ]);
-    setSpots(cached);
-    setPending(queued);
-  }, [userId]);
-
-  // Show the on-device copy first, then refresh from the server if we can
-  useEffect(() => {
-    if (!token || userId === undefined) return;
-
-    const loadSpots = async () => {
-      await loadLocal();
-      setLoading(true);
-      try {
-        const data = await spotsApi.getSpots();
-        setSpots(data);
-        setShowingOfflineCopy(false);
-        await spotsStore.setCached(userId, data);
-      } catch (err) {
-        setShowingOfflineCopy(true);
-        if (!isNetworkError(err)) console.error('Failed to fetch spots:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSpots();
-    // Pending spots uploaded in the background
-    return spotsStore.subscribe(loadLocal);
-  }, [token, userId, loadLocal]);
+  
 
   // if not logged in, show login form
   if (!token) {
