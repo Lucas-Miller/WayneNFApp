@@ -42,7 +42,7 @@ export class ApiError extends Error {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'DELETE';
+  method?: 'GET' | 'POST' | 'DELETE' | 'PATCH';
   body?: unknown;
   auth?: boolean;
 };
@@ -98,4 +98,6 @@ export const spotsApi = {
     request<Spot>('/spots', { method: 'POST', body: spot, auth: true }),
   deleteSpot: (spotId: number) =>
     request<void>(`/spots/${spotId}`, { method: 'DELETE', auth: true }),
+  updateSpot: (spotId: number, name: string) =>
+    request<Spot>(`/spots/${spotId}`, { method: 'PATCH', body: { name } , auth: true }),
 };

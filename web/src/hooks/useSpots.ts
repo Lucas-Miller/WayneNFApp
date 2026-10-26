@@ -1,8 +1,8 @@
 // hooks/useSpots.ts
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { spotsApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useSpots = () => {
   const { token } = useAuth();
@@ -25,6 +25,14 @@ export const useDeleteSpot = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: spotsApi.deleteSpot,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['spots'] }),
+  });
+};
+
+export const useUpdateSpot = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, name }: {id: number; name: string }) => spotsApi.updateSpot(id, name),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['spots'] }),
   });
 };

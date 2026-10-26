@@ -1,8 +1,7 @@
 // components/PointInfoCard.tsx - details for a tapped/searched point, with copy and save
 
-import { Link } from '@tanstack/react-router';
-import { Check, Copy, MapPin, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import type { Coordinate } from '@/lib/types';
+import { Spot } from '@/lib/types';
 import {
   distanceMiles,
   type ForestArea,
@@ -10,28 +9,26 @@ import {
   formatDistance,
   formatDMS,
 } from '@shared/pointInfo';
-import type { Coordinate } from '@/lib/types';
+import { Check, Copy, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 type PointInfoCardProps = {
   point: Coordinate;
   forestArea: ForestArea | null;
   myLocation: Coordinate | null;
-  signedIn: boolean;
-  saving: boolean;
-  onSave: (name: string) => void;
   onClose: () => void;
+  spot?: Spot | null;
+  children?: React.ReactNode;
 };
 
 export function PointInfoCard({
   point,
   forestArea,
   myLocation,
-  signedIn,
-  saving,
-  onSave,
   onClose,
+  spot,
+  children,
 }: PointInfoCardProps) {
-  const [name, setName] = useState('');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
 
   useEffect(() => {
@@ -67,11 +64,15 @@ export function PointInfoCard({
   ].filter(Boolean);
 
   return (
-    <section className="card point-card" aria-label="Selected location">
+    <section className="card point-card" aria-label={spot ? `Saved spot: ${spot.name}` : 'Selected location'}>
       <div className="point-card-header">
-        <span className={`status-chip ${forestArea ? 'inside' : 'outside'}`}>
-          {forestArea ? '✓ Inside Wayne NF' : '✗ Outside Wayne NF'}
-        </span>
+        {/* Saved spots get their name as a title, with the status chip underneath */}
+        <div className="point-card-title">
+          {spot && <h2 className="spot-name">{spot.name}</h2>}
+          <span className={`status-chip ${forestArea ? 'inside' : 'outside'}`}>
+            {forestArea ? '✓ Inside Wayne NF' : '✗ Outside Wayne NF'}
+          </span>
+        </div>
         <button className="icon-btn" onClick={onClose} title="Close (Esc)" aria-label="Close">
           <X size={20} />
         </button>
@@ -90,32 +91,8 @@ export function PointInfoCard({
         </button>
       </div>
 
-      {signedIn ? (
-        <form
-          className="save-row"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (name.trim()) onSave(name.trim());
-          }}
-        >
-          <input
-            className="input"
-            placeholder="Name this spot, e.g. Creek Overlook"
-            aria-label="Spot name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={50}
-          />
-          <button type="submit" className="btn btn-primary" disabled={!name.trim() || saving}>
-            <MapPin size={18} />
-            {saving ? 'Saving…' : 'Save'}
-          </button>
-        </form>
-      ) : (
-        <p className="muted sign-in-hint">
-          <Link to="/account">Sign in</Link> to save this spot.
-        </p>
-      )}
+      {children}
+
     </section>
   );
 }

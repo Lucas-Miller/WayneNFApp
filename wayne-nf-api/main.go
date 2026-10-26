@@ -5,6 +5,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -191,12 +192,8 @@ func spotsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DELETE /spots/{id}
-func spotDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+// DELETE, PATCH /spots/{id}
+func spotHandler(w http.ResponseWriter, r *http.Request) {
 	uid, _ := strconv.Atoi(r.Header.Get("X-User-ID"))
 	// URL: /spots/<id>
 	parts := strings.Split(r.URL.Path, "/")
@@ -209,18 +206,56 @@ func spotDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "invalid id", http.StatusBadRequest)
 		return
 	}
-	res, err := db.Exec(
-		`DELETE FROM scout_spots WHERE id=$1 AND user_id=$2`, id, uid)
-	if err != nil {
-		http.Error(w, "db error", http.StatusInternalServerError)
-		return
+
+	switch r.Method {
+	case http.MethodDelete:
+		res, err := db.Exec(
+			`DELETE FROM scout_spots WHERE id=$1 AND user_id=$2`, id, uid)
+		if err != nil {
+			http.Error(w, "db error", http.StatusInternalServerError)
+			return
+		}
+		n, _ := res.RowsAffected()
+		if n == 0 {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	case http.MethodPatch:
+		var input struct {
+			Name string `json:"name"`
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+			http.Error(w, "invalid payload", http.StatusBadRequest)
+			return
+		}
+
+		newName := strings.TrimSpace(input.Name)
+
+		if len(newName) > 50 || newName == "" {
+			http.Error(w, "invalid name input", http.StatusBadRequest)
+			return
+		}
+
+		var s spot
+		err := db.QueryRow(
+			`UPDATE scout_spots SET name=$1 WHERE id=$2 AND user_id=$3 RETURNING id, name, latitude, longitude, created_at`, newName, id, uid).Scan(&s.ID, &s.Name, &s.Latitude, &s.Longitude, &s.CreatedAt)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, "db error", http.StatusInternalServerError)
+			return
+		}
+
+		writeJSON(w, s)
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		http.Error(w, "not found", http.StatusNotFound)
-		return
-	}
-	w.WriteHeader(http.StatusNoContent)
 }
 
 // ----------------- Auth Middleware -----------------
@@ -259,7 +294,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 		origin := r.Header.Get("Origin")
 		if allowed[origin] {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, If-None-Match")
 			w.Header().Set("Access-Control-Max-Age", "86400")
 		}
@@ -294,7 +329,7 @@ func main() {
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/me", authMiddleware(meHandler))
 	http.HandleFunc("/spots", authMiddleware(spotsHandler))
-	http.HandleFunc("/spots/", authMiddleware(spotDeleteHandler))
+	http.HandleFunc("/spots/", authMiddleware(spotHandler))
 	http.HandleFunc("/forest-boundary", forestBoundaryHandler)
 
 	initBoundary()

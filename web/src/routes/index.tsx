@@ -8,15 +8,19 @@ import { MessageBanner } from '@/components/MessageBanner';
 import { PointInfoCard } from '@/components/PointInfoCard';
 import { RouteDirections } from '@/components/RouteDirections';
 import { RoutePreviewCard } from '@/components/RoutePreviewCard';
+import { SaveSpotForm } from '@/components/SaveSpotForm';
 import { useLocationTracking } from '@/hooks/useLocationTracking';
 import { useCreateSpot, useSpots } from '@/hooks/useSpots';
 import { useWayneForestData } from '@/hooks/useWayneForestData';
 import { useAuth } from '@/lib/auth';
 import { CONFIG, DEFAULT_CENTER } from '@/lib/config';
 import type { Coordinate, RouteInfo } from '@/lib/types';
+import { Spot } from '@/lib/types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { AdvancedMarker, Map, type MapMouseEvent, Pin, useMap } from '@vis.gl/react-google-maps';
 import { useCallback, useEffect, useState } from 'react';
+
+import { SpotActions } from '@/components/SpotActions';
 
 type MapSearch = {
   destLat?: number;
@@ -50,6 +54,7 @@ function MapScreen() {
 
   const [mapType, setMapType] = useState<MapType>('satellite');
   const [selectedPoint, setSelectedPoint] = useState<Coordinate | null>(null);
+  const [selectedSpotId, setSelectedSpotId] = useState<number | null>(null);
   const [message, setMessage] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
@@ -58,7 +63,9 @@ function MapScreen() {
   const { myLocation, tracking, getCurrentLocation, startTracking, stopTracking } = useLocationTracking();
   const createSpot = useCreateSpot();
 
-  const { data: savedSpots = [], isLoading, error } = useSpots();
+  const { data: savedSpots = []} = useSpots();
+
+  const selectedSpot = savedSpots.find((s) => s.id === selectedSpotId) ?? null;
 
   const dismissMessage = useCallback(() => setMessage(''), []);
 
@@ -75,6 +82,7 @@ function MapScreen() {
    */
   const selectPoint = useCallback(
     (latitude: number, longitude: number, recenter: boolean) => {
+      setSelectedSpotId(null);
       setSelectedPoint({ latitude, longitude });
       if (recenter && map) {
         map.panTo({ lat: latitude, lng: longitude });
@@ -84,7 +92,15 @@ function MapScreen() {
     [map]
   );
 
-  const closePointInfo = useCallback(() => setSelectedPoint(null), []);
+  const closePointInfo = useCallback(() => {
+    setSelectedSpotId(null);
+    setSelectedPoint(null);
+  }, []);
+
+  const selectSpot = (spot: Spot) => {
+    setSelectedPoint(spot);
+    setSelectedSpotId(spot.id);
+  };
 
   /**
    * While tracking: follow the user and report whether they're inside the forest
@@ -112,7 +128,7 @@ function MapScreen() {
       { name, ...selectedPoint },
       {
         onSuccess: () => {
-          setSelectedPoint(null);
+          closePointInfo();
           setMessage('✓ Spot saved successfully!');
         },
         onError: () => setMessage('✗ Failed to save spot'),
@@ -166,6 +182,11 @@ function MapScreen() {
     );
   };
 
+  const handleDirections = (spot: Spot) => {
+    navigate({ search: { destLat: spot.latitude, destLng: spot.longitude } });
+    closePointInfo();
+  };
+
   const handleRouteError = useCallback(() => {
     setMessage('Could not load directions');
     setRouteInfo(null);
@@ -211,9 +232,9 @@ function MapScreen() {
           </AdvancedMarker>
         )}
 
-        {savedSpots && savedSpots.map((spot, index) => 
+        {savedSpots.map((spot) => 
           (
-            <AdvancedMarker position={toLatLng(spot)} title={spot.name} zIndex={0} key={index}>
+            <AdvancedMarker position={toLatLng(spot)} title={spot.name} zIndex={0} key={spot.id} onClick={() => selectSpot(spot)}>
               <Pin background="#F57C00" borderColor="#E65100" glyphColor="#fff" />
             </AdvancedMarker>
          )
@@ -254,14 +275,17 @@ function MapScreen() {
 
       {selectedPoint ? (
         <PointInfoCard
+          key={selectedSpot ? `spot-${selectedSpot.id}` : selectedPoint.latitude + ', ' + selectedPoint.longitude}
           point={selectedPoint}
           forestArea={getForestAreaAt(selectedPoint.latitude, selectedPoint.longitude)}
           myLocation={myLocation}
-          signedIn={!!token}
-          saving={createSpot.isPending}
-          onSave={handleSaveSpot}
           onClose={closePointInfo}
-        />
+          spot={selectedSpot}
+        >
+          {selectedSpot ? (<SpotActions spot={selectedSpot} onNavigate={() => handleDirections(selectedSpot)} onClose={closePointInfo} />) : (<SaveSpotForm signedIn={!!token} saving={createSpot.isPending} onSave={handleSaveSpot}/>)}
+          
+          
+        </PointInfoCard>
       ) : (
         destination &&
         routeInfo && (
